@@ -1,6 +1,6 @@
 Config = {}
 Config.Debug = false
--- Nastavení časů (neměním, nechávám tvé)
+
 Config.DST = 1
 Config.GreenTimeStart = 16
 Config.GreenTimeEnd = 23
@@ -11,34 +11,45 @@ Config.WebHook = ""
 Config.ServerName = 'WestHaven ** Loger'
 Config.DiscordColor = 16753920
 
--- Nastavení Jobů (Vet vidí HP)
 Config.Jobs = {
     {job = 'police', grade = 1},
-    {job = 'doctor', grade = 1} -- Veterinář/Doktor
+    {job = 'doctor', grade = 1} 
 }
 Config.VetJob = "vet" -- Job, který vidí přesná čísla a může léčit
 
 Config.AdultAgeDays = 3
-Config.BreedingTimeDays = 1 -- Pro testování dej 0, jinak např. 3
+Config.BreedingTimeDays = 1 
 Config.chanceToKeepMaleBreed = 50
 Config.chanceToBeMale = 50
+
+-- MUTACE
 Config.mutationChance = 20
+Config.MutationBoost = 15 -- Kolik % k šanci na mutaci přidá 1 použití mutagenu
 
 Config.averageStats = { max = 110, min = 90 }
 
 -- Nastavení přežití a péče
 Config.Care = {
-    MaxFood = 10,               -- Kolikrát musí být kůň nakrmen pro 100% bonus k přežití
-    BaseSurvivalChance = 40,    -- Základní šance na přežití hříběte (bez jídla a léčby) v %
-    MotherDeathChance = 10,     -- Základní šance, že matka zemře při porodu (pokud není zdravá)
+    MaxFood = 10,               
+    BaseSurvivalChance = 40,    
+    MotherDeathChance = 10,     
     
     Items = {
-        food = "horse_treat",       -- Item pro krmení (zvyšuje food_progress)
-        medicine = "horse_heal_1" -- Item pro léčení (zvyšuje health matky i hříběte)
+        -- Jídlo: "název_itemu" = kolik bodů do progress baru přidá
+        food = {
+            ["horse_treat"] = 2,
+            ["horse_treat1"] = 2,["product_apple"] = 1
+        },
+        -- Léky: "název_itemu" = kolik % zdraví doplní
+        medicine = {
+            ["horse_heal_1"] = 20,["horse_heal_2"] = 50
+        },
+        -- Speciální itemy
+        pheromone = "medical_pheromone_gel", -- Nutné pro zahájení
+        mutation = "product_pheromone"           -- Item pro zvýšení šance na mutaci
     },
     
-    HealAmount = 20,            -- Kolik HP přidá lék
-    HealthDecay = 5             -- Kolik HP ztratí matka/hříbě každých X hodin (řeší server tick nebo cron, zde zjednodušeno na náhodu při claimu)
+    HealthDecay = 5             
 }
 
 Config.previews = {

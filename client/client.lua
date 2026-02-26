@@ -4,18 +4,6 @@ local keys = { ['G'] = 0x760A9C6F }
 local currentStable = nil
 local previewPeds = { mother = nil, father = nil }
 
--- Pomocná funkce pro inventář
-function GetItemCountInInventory(inventory, item)
-    if inventory and type(inventory) == "table" then
-        for _, invItem in pairs(inventory) do
-            if invItem.name == item then
-                return invItem.count
-            end
-        end
-    end
-    return 0
-end
-
 Citizen.CreateThread(function()
     while true do
         local wait = 1000
@@ -33,13 +21,28 @@ Citizen.CreateThread(function()
                         
                         if IsControlJustPressed(0, keys['G']) then
                             currentStable = stableName
-                            -- Získáme inventář klienta
                             local inventory = exports.vorp_inventory:getInventoryItems()
-                            local foodCount = GetItemCountInInventory(inventory, Config.Care.Items.food)
-                            local medCount = GetItemCountInInventory(inventory, Config.Care.Items.medicine)
+                            local invData = { food = 0, medicine = 0, pheromone = 0, mutation = 0 }
                             
-                            -- Pošleme požadavek na server s info o inventáři
-                            TriggerServerEvent('aprts_kd_breeding:openMenu', stableName, foodCount, medCount)
+                            -- Sečteme všechny validní itemy podle configu
+                            if inventory and type(inventory) == "table" then
+                                for _, invItem in pairs(inventory) do
+                                    if Config.Care.Items.food[invItem.name] then 
+                                        invData.food = invData.food + invItem.count 
+                                    end
+                                    if Config.Care.Items.medicine[invItem.name] then 
+                                        invData.medicine = invData.medicine + invItem.count 
+                                    end
+                                    if invItem.name == Config.Care.Items.pheromone then 
+                                        invData.pheromone = invData.pheromone + invItem.count 
+                                    end
+                                    if invItem.name == Config.Care.Items.mutation then 
+                                        invData.mutation = invData.mutation + invItem.count 
+                                    end
+                                end
+                            end
+                            
+                            TriggerServerEvent('aprts_kd_breeding:openMenu', stableName, invData)
                         end
                     end
                 end
@@ -60,7 +63,6 @@ function DrawText3D(x, y, z, text)
     end
 end
 
--- Otevření menu
 RegisterNetEvent('aprts_kd_breeding:client:openMenu')
 AddEventHandler('aprts_kd_breeding:client:openMenu', function(availableHorses, activeBreedings, isVet, invData)
     SetNuiFocus(true, true)
@@ -74,7 +76,6 @@ AddEventHandler('aprts_kd_breeding:client:openMenu', function(availableHorses, a
     })
 end)
 
--- Callbacky z NUI
 RegisterNUICallback('closeUI', function(data, cb)
     SetNuiFocus(false, false)
     CleanupPreviews()
@@ -88,21 +89,16 @@ end)
 
 RegisterNUICallback('startBreeding', function(data, cb)
     TriggerServerEvent('aprts_kd_breeding:processBreeding', data.motherId, data.fatherId, currentStable)
-    -- Zavřeme UI a vyčistíme
     SetNuiFocus(false, false)
     CleanupPreviews()
     cb('ok')
 end)
 
 RegisterNUICallback('actionBreeding', function(data, cb)
-    -- data.type = "feed" nebo "heal" nebo "claim"
-    -- data.id = ID breeding záznamu
     TriggerServerEvent('aprts_kd_breeding:handleAction', data.type, data.id, currentStable)
     cb('ok')
 end)
 
-
--- Funkce pro náhledy koní (stejná)
 function SpawnPreviewHorse(type, horseData)
     if previewPeds[type] then DeleteEntity(previewPeds[type]) end
 
@@ -114,7 +110,7 @@ function SpawnPreviewHorse(type, horseData)
     local pos = type == "mother" and stableData.female or stableData.male
 
     local ped = CreatePed(hash, pos.x, pos.y, pos.z - 1.0, pos.w, false, false, 0, 0)
-    Citizen.InvokeNative(0x283978A15512B2FE, ped, true) -- Set ped random outfit
+    Citizen.InvokeNative(0x283978A15512B2FE, ped, true) 
     
     if horseData.palette and horseData.palette ~= "" then
         local paletteHash = tonumber(horseData.palette) or GetHashKey(horseData.palette)
@@ -134,68 +130,48 @@ function CleanupPreviews()
     if previewPeds.father then DeleteEntity(previewPeds.father); previewPeds.father = nil end
 end
 
-
--- =========================================================
---  NOVÁ ČÁST: PŘÍJEM DAT O HŘÍBĚTI A ODESLÁNÍ DO STÁJE
--- =========================================================
-
--- client/client.lua (část)
-
 RegisterNetEvent('aprts_kd_breeding:client:receiveFoal')
 AddEventHandler('aprts_kd_breeding:client:receiveFoal', function(stable, name, isFemale, model, speed, acceleration, handling, stamina, health, bodyVisual, hairVisual)
-    
-    -- Pomocná funkce pro vytvoření struktury komponenty
     local function createComponent(category, visualData, defaultIndex)
         return {
-            wearableStateHash = 0, -- Nebo visualData.wearableStateHash pokud bys to tahal z DB
+            wearableStateHash = 0,
             palette = visualData.palette,
             normal = visualData.normal,
             material = visualData.material,
             tint2 = visualData.tint2,
             category = category,
-            index = defaultIndex, -- Index se může lišit, ale pro default nastavení stačí
+            index = defaultIndex,
             albedo = visualData.albedo,
-            categoryHash = 0, -- Hra si dopočítá podle modelu
-            hash = 0,         -- 0 = defaultní část pro daný model koně
+            categoryHash = 0,
+            hash = 0,
             wearableState = "base",
             tint0 = visualData.tint0,
-            drawable = visualData.drawable, -- Pro tělo důležité, pro hřívu méně (pokud je hash 0)
+            drawable = visualData.drawable,
             tint1 = visualData.tint1
         }
     end
 
-    -- Sestavení kompletní struktury jako ve tvém vzoru
     local componentsData = {
-        -- TĚLO A HLAVA (dědí z bodyVisual)
         horse_bodies = createComponent("horse_bodies", bodyVisual, 3),
         horse_heads  = createComponent("horse_heads", bodyVisual, 2),
-        
-        -- HŘÍVA A OCAS (dědí z hairVisual - může být jiná barva!)
         horse_manes  = createComponent("horse_manes", hairVisual, 5),
         horse_tails  = createComponent("horse_tails", hairVisual, 6)
     }
 
-    -- Finální data pro kd_stable
     local data = {
         model = model,
-        sex = isFemale, -- true/false
-        
+        sex = isFemale, 
         speed = speed,
         acceleration = acceleration,
         handling = handling,
-        
         bonding = 0,
         stamina = stamina,
         health = health,
-        
         age = 0,
         distance = 0,
-        
-        -- Zde vkládáme novou strukturu komponent
         components = componentsData
     }
 
-    -- Odeslání do stájí
     TriggerServerEvent("kd_stable:server:addHorse", stable, name, data)
     TriggerEvent("vorp:TipRight", "Hříbě bylo úspěšně předáno do stáje!", 5000)
 end)
