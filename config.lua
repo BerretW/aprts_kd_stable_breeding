@@ -11,19 +11,18 @@ Config.WebHook = ""
 Config.ServerName = 'WestHaven ** Loger'
 Config.DiscordColor = 16753920
 
-Config.Jobs = {
-    {job = 'police', grade = 1},
-    {job = 'doctor', grade = 1} 
-}
-Config.VetJob = "vet" -- Job, který vidí přesná čísla a může léčit
 
+Config.VetJob = {
+    {job = 'vet', grade = 1},
+    {job = 'wapiti', grade = 2} 
+}
 Config.AdultAgeDays = 3
 Config.BreedingTimeDays = 1 
 Config.chanceToKeepMaleBreed = 50
 Config.chanceToBeMale = 50
 
 -- MUTACE
-Config.mutationChance = 20
+Config.mutationChance = 10
 Config.MutationBoost = 15 -- Kolik % k šanci na mutaci přidá 1 použití mutagenu
 
 Config.averageStats = { max = 110, min = 90 }
@@ -38,11 +37,11 @@ Config.Care = {
         -- Jídlo: "název_itemu" = kolik bodů do progress baru přidá
         food = {
             ["horse_treat"] = 2,
-            ["horse_treat1"] = 2,["product_apple"] = 1
+            ["horse_treat1"] = 2,["product_apple"] = 1, ["horse_apache_treat"] = 1
         },
         -- Léky: "název_itemu" = kolik % zdraví doplní
         medicine = {
-            ["horse_heal_1"] = 20,["horse_heal_2"] = 50
+            ["horse_heal_1"] = 20,["horse_heal_2"] = 50, ["shaman_horse_mix_1"] = 30, ["shaman_horse_mix_2"] = 30
         },
         -- Speciální itemy
         pheromone = "medical_pheromone_gel", -- Nutné pro zahájení

@@ -7,7 +7,12 @@
 <body>
     <div id="app" style="display: none;">
         <div class="main-window">
-            <button class="close-btn" onclick="closeUI()">X</button>
+            <button class="close-btn" onclick="closeUI()">✕</button>
+            
+            <div class="header-title">
+                <h1>Správa chovu a stájí</h1>
+            </div>
+
             <div class="tabs">
                 <button class="tab-btn active" onclick="switchTab('new')">Nový chov</button>
                 <button class="tab-btn" onclick="switchTab('active')">Probíhající březosti</button>
@@ -17,7 +22,7 @@
             <div id="tab-new" class="tab-content active-tab">
                 <div class="selection-area">
                     <div class="horse-col">
-                        <h3>Matka</h3>
+                        <div class="col-header">Matka (Klisna)</div>
                         <select id="mother-select"><option value="" disabled selected>Vyber klisnu...</option></select>
                         <div class="stats-box" id="m-stats">
                             <p>Rychlost: <span id="m-speed">-</span></p>
@@ -27,8 +32,11 @@
                             <p>Zdraví: <span id="m-health">-</span></p>
                         </div>
                     </div>
+                    
+                    <div class="divider"></div>
+
                     <div class="horse-col">
-                        <h3>Otec</h3>
+                        <div class="col-header">Otec (Hřebec)</div>
                         <select id="father-select"><option value="" disabled selected>Vyber hřebce...</option></select>
                         <div class="stats-box" id="f-stats">
                             <p>Rychlost: <span id="f-speed">-</span></p>
@@ -39,7 +47,9 @@
                         </div>
                     </div>
                 </div>
-                <button id="breed-btn" disabled>Zahájit Množení</button>
+                <div class="btn-container">
+                    <button id="breed-btn" disabled>Zahájit Množení</button>
+                </div>
             </div>
 
             <!-- TAB: AKTIVNÍ BŘEZOSTI -->
@@ -49,6 +59,9 @@
                 </div>
             </div>
         </div>
+
+        <!-- Toast Notifikace v UI -->
+        <div id="toast-container"></div>
     </div>
     <script src="script.js"></script>
 </body>

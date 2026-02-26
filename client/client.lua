@@ -175,3 +175,15 @@ AddEventHandler('aprts_kd_breeding:client:receiveFoal', function(stable, name, i
     TriggerServerEvent("kd_stable:server:addHorse", stable, name, data)
     TriggerEvent("vorp:TipRight", "Hříbě bylo úspěšně předáno do stáje!", 5000)
 end)
+
+RegisterNetEvent('aprts_kd_breeding:client:actionResult')
+AddEventHandler('aprts_kd_breeding:client:actionResult', function(success, message, actionType, breedId, value)
+    SendNUIMessage({
+        action = "actionResult",
+        success = success,
+        message = message,
+        actionType = actionType,
+        breedId = breedId,
+        value = value -- Kolik bodů se má přidat do progress baru/zdraví
+    })
+end)

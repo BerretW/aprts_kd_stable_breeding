@@ -17,6 +17,44 @@ window.addEventListener('message', function(event) {
         switchTab('new');
         populateNewBreed();
         renderActiveBreedings();
+    } 
+    // ZDE ZACHYTÁVÁME SERVEROVOU ODPOVĚĎ
+    else if (data.action === "actionResult") {
+        if (data.success) {
+            showToast(data.message, "var(--rdr-green)");
+            
+            // Lokální aktualizace dat (aby nebylo nutné tahat DB znovu)
+            if (data.actionType === 'feed') {
+                let item = currentData.active.find(i => i.id == data.breedId);
+                if (item) item.food_progress += data.value;
+                currentData.inventory.food -= 1;
+            } else if (data.actionType === 'heal_mother') {
+                let item = currentData.active.find(i => i.id == data.breedId);
+                if (item) item.mother_health = Math.min(100, item.mother_health + data.value);
+                currentData.inventory.medicine -= 1;
+            } else if (data.actionType === 'heal_foal') {
+                let item = currentData.active.find(i => i.id == data.breedId);
+                if (item) item.foal_health = Math.min(100, item.foal_health + data.value);
+                currentData.inventory.medicine -= 1;
+            } else if (data.actionType === 'mutate') {
+                currentData.inventory.mutation -= 1;
+            } else if (data.actionType === 'startBreeding' || data.actionType.startsWith('claim')) {
+                // Po porodu / zahájení rovnou menu zavíráme
+                setTimeout(() => closeUI(), 1500);
+                return; 
+            }
+
+            renderActiveBreedings(); // Překreslí nová data, odblokuje tlačítka
+        } else {
+            showToast(data.message, "var(--rdr-red)");
+            renderActiveBreedings(); // Odblokuje tlačítka po failu
+            
+            if (data.actionType === 'startBreeding') {
+                let btn = document.getElementById('breed-btn');
+                btn.disabled = false;
+                btn.innerText = "Zahájit Množení";
+            }
+        }
     }
 });
 
@@ -110,11 +148,14 @@ function checkButton() {
 document.getElementById('breed-btn').addEventListener('click', function() {
     if (!selectedMother || !selectedFather) return;
     
+    let btn = document.getElementById('breed-btn');
+    btn.disabled = true;
+    btn.innerText = "Zpracovávám...";
+
     fetch(`https://${GetParentResourceName()}/startBreeding`, {
         method: 'POST',
         body: JSON.stringify({ motherId: selectedMother.id, fatherId: selectedFather.id })
     });
-    closeUI();
 });
 
 function renderActiveBreedings() {
@@ -122,7 +163,7 @@ function renderActiveBreedings() {
     list.innerHTML = "";
 
     if (!currentData.active || currentData.active.length === 0) {
-        list.innerHTML = "<p style='text-align:center; padding: 20px; color:#888;'>Žádné probíhající březosti.</p>";
+        list.innerHTML = "<p style='text-align:center; padding: 40px; color:var(--rdr-text-muted); font-style: italic;'>Žádné probíhající březosti nebyly nalezeny.</p>";
         return;
     }
 
@@ -132,40 +173,41 @@ function renderActiveBreedings() {
         
         const isReady = (item.isReady == 1 || item.isReady === true);
 
-        // Zobrazení zdraví
         let mHText = currentData.isVet ? `${item.mother_health}%` : (item.mother_health > 80 ? "Zdravá" : (item.mother_health > 40 ? "Nemocná" : "Kritická"));
         let fHText = currentData.isVet ? `${item.foal_health}%` : (item.foal_health > 80 ? "Zdravé" : (item.foal_health > 40 ? "Ohrožené" : "Kritické"));
-        let mCol = item.mother_health > 40 ? (item.mother_health > 80 ? 'lightgreen' : 'orange') : 'red';
-        let fCol = item.foal_health > 40 ? (item.foal_health > 80 ? 'lightgreen' : 'orange') : 'red';
+        let mCol = item.mother_health > 40 ? (item.mother_health > 80 ? '#8fbc63' : '#dcb670') : '#cc4444';
+        let fCol = item.foal_health > 40 ? (item.foal_health > 80 ? '#8fbc63' : '#dcb670') : '#cc4444';
 
         const foodPerc = Math.min(100, (item.food_progress / currentData.config.MaxFood) * 100);
 
-        let actionHtml = `<button class="btn-feed" onclick="doAction('feed', ${item.id})" ${currentData.inventory.food > 0 ? '' : 'disabled'}>Nakrmit</button>`;
+        let actionHtml = `<button class="btn-feed" onclick="doAction(event, 'feed', ${item.id})" ${currentData.inventory.food > 0 ? '' : 'disabled'}>Nakrmit</button>`;
 
         if (currentData.isVet) {
             actionHtml += `
-                <button class="btn-heal" onclick="doAction('heal_mother', ${item.id})" ${currentData.inventory.medicine > 0 ? '' : 'disabled'}>Léčit klisnu</button>
-                <button class="btn-heal" onclick="doAction('heal_foal', ${item.id})" ${currentData.inventory.medicine > 0 ? '' : 'disabled'}>Léčit hříbě</button>
+                <button class="btn-heal" onclick="doAction(event, 'heal_mother', ${item.id})" ${currentData.inventory.medicine > 0 ? '' : 'disabled'}>Léčit klisnu</button>
+                <button class="btn-heal" onclick="doAction(event, 'heal_foal', ${item.id})" ${currentData.inventory.medicine > 0 ? '' : 'disabled'}>Léčit hříbě</button>
             `;
         }
 
-        actionHtml += `<button class="btn-mutate" onclick="doAction('mutate', ${item.id})" ${currentData.inventory.mutation > 0 ? '' : 'disabled'}>Mutagen</button>`;
+        actionHtml += `<button class="btn-mutate" onclick="doAction(event, 'mutate', ${item.id})" ${currentData.inventory.mutation > 0 ? '' : 'disabled'}>Mutagen</button>`;
 
         if (isReady) {
-            actionHtml += `<button class="btn-claim" onclick="doAction('claim', ${item.id})">POROD</button>`;
+            actionHtml += `<button class="btn-claim" onclick="doAction(event, 'claim', ${item.id})">POROD</button>`;
         } else {
-            actionHtml += `<button disabled style="background:#444; color:#777; cursor:not-allowed; border: 1px solid #333;">Čeká...</button>`;
+            actionHtml += `<button disabled style="opacity: 0.5;">Čeká se...</button>`;
         }
 
         div.innerHTML = `
             <div class="status-info">
-                <strong style="color: #dcb670; font-size: 16px;">Matka: ${item.mother_name} & Otec: ${item.father_name}</strong><br>
-                <div style="margin: 5px 0;">
-                    <span style="color:${mCol}">Matka: ${mHText}</span> | 
-                    <span style="color:${fCol}">Hříbě: ${fHText}</span>
+                <div class="horse-names">Matka: ${item.mother_name} &bull; Otec: ${item.father_name}</div>
+                <div class="health-stats">
+                    <span>Klisna: <span style="color:${mCol}; font-weight:bold;">${mHText}</span></span>
+                    <span>Hříbě: <span style="color:${fCol}; font-weight:bold;">${fHText}</span></span>
                 </div>
-                Krmení: ${item.food_progress}/${currentData.config.MaxFood} 
-                <div class="status-bar"><div class="bar-fill" style="width: ${foodPerc}%"></div></div>
+                <div class="status-bar-container">
+                    Krmení: ${item.food_progress} / ${currentData.config.MaxFood}
+                    <div class="status-bar"><div class="bar-fill" style="width: ${foodPerc}%"></div></div>
+                </div>
             </div>
             <div class="action-buttons">
                 ${actionHtml}
@@ -175,12 +217,28 @@ function renderActiveBreedings() {
     });
 }
 
-function doAction(actionType, id) {
+function doAction(event, actionType, id) {
+    let btn = event.target;
+    btn.disabled = true;
+    btn.innerText = "⏳..."; // Indikátor zpracování na tlačítku
+
     fetch(`https://${GetParentResourceName()}/actionBreeding`, {
         method: 'POST',
         body: JSON.stringify({ type: actionType, id: id })
     });
-    closeUI();
+}
+
+function showToast(text, color) {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.style.borderLeftColor = color || "var(--rdr-gold)";
+    toast.innerText = text;
+    
+    container.appendChild(toast);
+    setTimeout(() => {
+        if (toast.parentNode) toast.parentNode.removeChild(toast);
+    }, 3000);
 }
 
 function closeUI() {
@@ -188,7 +246,6 @@ function closeUI() {
     fetch(`https://${GetParentResourceName()}/closeUI`, { method: 'POST' });
 }
 
-const closeBtn = document.querySelector('.close-btn');
-if(closeBtn) {
-    closeBtn.addEventListener('click', closeUI);
-}
+document.addEventListener('keydown', function(event) {
+    if (event.key === "Escape") closeUI();
+});
