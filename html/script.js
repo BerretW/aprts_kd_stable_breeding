@@ -34,12 +34,10 @@ function switchTab(tab) {
     // Aktivujeme vybraný tab
     document.getElementById('tab-' + tab).classList.add('active-tab');
     
-    // Najdeme tlačítko, které tab spustilo a označíme ho (pokud se volá z HTML onclick)
-    if (event && event.target && event.target.classList.contains('tab-btn')) {
-        event.target.classList.add('active');
-    } else {
-        // Fallback pro první volání
-        document.querySelector(`.tab-btn[onclick="switchTab('${tab}')"]`).classList.add('active');
+    // Bezpečné nalezení tlačítka a přidání třídy active
+    let activeBtn = document.querySelector(`.tab-btn[onclick="switchTab('${tab}')"]`);
+    if (activeBtn) {
+        activeBtn.classList.add('active');
     }
 }
 

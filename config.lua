@@ -16,10 +16,10 @@ Config.Jobs = {
     {job = 'police', grade = 1},
     {job = 'doctor', grade = 1} -- Veterinář/Doktor
 }
-Config.VetJob = "doctor" -- Job, který vidí přesná čísla a může léčit
+Config.VetJob = "vet" -- Job, který vidí přesná čísla a může léčit
 
-Config.AdultAgeDays = 14
-Config.BreedingTimeDays = 0 -- Pro testování dej 0, jinak např. 3
+Config.AdultAgeDays = 3
+Config.BreedingTimeDays = 1 -- Pro testování dej 0, jinak např. 3
 Config.chanceToKeepMaleBreed = 50
 Config.chanceToBeMale = 50
 Config.mutationChance = 20
@@ -33,8 +33,8 @@ Config.Care = {
     MotherDeathChance = 10,     -- Základní šance, že matka zemře při porodu (pokud není zdravá)
     
     Items = {
-        food = "haycube",       -- Item pro krmení (zvyšuje food_progress)
-        medicine = "horse_medicine" -- Item pro léčení (zvyšuje health matky i hříběte)
+        food = "horse_treat",       -- Item pro krmení (zvyšuje food_progress)
+        medicine = "horse_heal_1" -- Item pro léčení (zvyšuje health matky i hříběte)
     },
     
     HealAmount = 20,            -- Kolik HP přidá lék

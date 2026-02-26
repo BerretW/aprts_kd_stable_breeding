@@ -96,8 +96,9 @@ AddEventHandler('aprts_kd_breeding:openMenu', function(stableKey, foodCount, med
                    c.palette, c.tint0, c.tint1, c.tint2
             FROM kd_horses h
             LEFT JOIN kd_horses_stats s ON h.id = s.horseid
-            LEFT JOIN kd_stable_color c ON h.id = c.id
-            WHERE h.identifier = ? AND h.charid = ? AND TIMESTAMPDIFF(DAY, h.birth, NOW()) >= ?
+            LEFT JOIN kd_stable_bought kb ON kb.equiped_on = h.id AND kb.category = 'horse_bodies'
+            LEFT JOIN kd_stable_color c ON c.id = kb.id
+            WHERE h.identifier = ? AND h.charid = ? AND TIMESTAMPDIFF(DAY, h.birth, NOW()) >= ? AND h.isDead = 0
         ]], {Character.identifier, Character.charIdentifier, Config.AdultAgeDays}, function(allHorses)
             
             local availableHorses = {}
@@ -143,24 +144,22 @@ AddEventHandler('aprts_kd_breeding:handleAction', function(actionType, breedId, 
     local Character = VORPcore.getUser(_source).getUsedCharacter
     
     if actionType == "feed" then
-        if exports.vorp_inventory:getItemCount(_source, Config.Care.Items.food) > 0 then
             exports.vorp_inventory:subItem(_source, Config.Care.Items.food, 1)
             exports.oxmysql:execute('UPDATE aprts_kd_breeding SET food_progress = food_progress + 1 WHERE id = ?', {breedId})
             TriggerClientEvent("vorp:TipRight", _source, "Klisna nakrmena.", 3000)
-        else
-            TriggerClientEvent("vorp:TipRight", _source, "Nemáš dostatek krmení!", 3000)
-        end
+
 
     elseif actionType == "heal" then
-        if exports.vorp_inventory:getItemCount(_source, Config.Care.Items.medicine) > 0 then
+            if Player(_source).state.Character.Job ~= Config.VetJob then
+                TriggerClientEvent("vorp:TipRight", _source, "Nejsi veterinář!", 3000)
+                return
+            end
             exports.vorp_inventory:subItem(_source, Config.Care.Items.medicine, 1)
             -- Zvýší HP maximálně na 100 (LEAST vybere menší hodnotu)
             exports.oxmysql:execute('UPDATE aprts_kd_breeding SET mother_health = LEAST(100, mother_health + ?), foal_health = LEAST(100, foal_health + ?) WHERE id = ?', 
             {Config.Care.HealAmount, Config.Care.HealAmount, breedId})
             TriggerClientEvent("vorp:TipRight", _source, "Klisna byla ošetřena.", 3000)
-        else
-            TriggerClientEvent("vorp:TipRight", _source, "Nemáš žádné léky!", 3000)
-        end
+
 
     elseif actionType == "claim" then
         ClaimFoalLogic(_source, breedId, stableKey)
