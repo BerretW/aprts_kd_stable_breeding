@@ -2,51 +2,40 @@
 <html lang="cs">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Množení Koní</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="app" style="display: none;">
-        <div class="container">
-            <h1>Stanice pro množení koní</h1>
-            <button id="close-btn">X</button>
-            
-            <div class="selection-area">
-                <!-- Matka -->
-                <div class="horse-box">
-                    <h2>Matka (Klisna)</h2>
-                    <select id="mother-select">
-                        <option value="" disabled selected>Vyber klisnu...</option>
-                    </select>
-                    <div id="mother-stats" class="stats-box">
-                        <p>Rychlost: <span id="m-speed">-</span></p>
-                        <p>Akcelerace: <span id="m-accel">-</span></p>
-                        <p>Ovladatelnost: <span id="m-handling">-</span></p>
-                        <hr style="border: 0; border-top: 1px solid #5a4a35; margin: 5px 0;">
-                        <p>Výdrž: <span id="m-stamina">-</span></p>
-                        <p>Zdraví: <span id="m-health">-</span></p>
-                    </div>
-                </div>
-
-                <!-- Otec -->
-                <div class="horse-box">
-                    <h2>Otec (Hřebec)</h2>
-                    <select id="father-select">
-                        <option value="" disabled selected>Vyber hřebce...</option>
-                    </select>
-                    <div id="father-stats" class="stats-box">
-                        <p>Rychlost: <span id="f-speed">-</span></p>
-                        <p>Akcelerace: <span id="f-accel">-</span></p>
-                        <p>Ovladatelnost: <span id="f-handling">-</span></p>
-                        <hr style="border: 0; border-top: 1px solid #5a4a35; margin: 5px 0;">
-                        <p>Výdrž: <span id="f-stamina">-</span></p>
-                        <p>Zdraví: <span id="f-health">-</span></p>
-                    </div>
-                </div>
+        <div class="main-window">
+            <button class="close-btn" onclick="closeUI()">X</button>
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('new')">Nový chov</button>
+                <button class="tab-btn" onclick="switchTab('active')">Probíhající březosti</button>
             </div>
 
-            <button id="breed-btn" disabled>Zahájit Množení</button>
+            <!-- TAB: NOVÝ CHOV -->
+            <div id="tab-new" class="tab-content active-tab">
+                <div class="selection-area">
+                    <div class="horse-col">
+                        <h3>Matka</h3>
+                        <select id="mother-select"><option>Vyber klisnu...</option></select>
+                        <div class="stats" id="m-stats"></div>
+                    </div>
+                    <div class="horse-col">
+                        <h3>Otec</h3>
+                        <select id="father-select"><option>Vyber hřebce...</option></select>
+                        <div class="stats" id="f-stats"></div>
+                    </div>
+                </div>
+                <button id="breed-btn" disabled>Zahájit Množení</button>
+            </div>
+
+            <!-- TAB: AKTIVNÍ BŘEZOSTI -->
+            <div id="tab-active" class="tab-content">
+                <div id="breeding-list">
+                    <!-- Zde se generují řádky JS -->
+                </div>
+            </div>
         </div>
     </div>
     <script src="script.js"></script>
