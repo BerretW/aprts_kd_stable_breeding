@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Množení Koní</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app" style="display: none;">
+        <div class="container">
+            <h1>Stanice pro množení koní</h1>
+            <button id="close-btn">X</button>
+            
+            <div class="selection-area">
+                <!-- Matka -->
+                <div class="horse-box">
+                    <h2>Matka (Klisna)</h2>
+                    <select id="mother-select">
+                        <option value="" disabled selected>Vyber klisnu...</option>
+                    </select>
+                    <div id="mother-stats" class="stats-box">
+                        <p>Rychlost: <span id="m-speed">-</span></p>
+                        <p>Akcelerace: <span id="m-accel">-</span></p>
+                        <p>Ovladatelnost: <span id="m-handling">-</span></p>
+                        <hr style="border: 0; border-top: 1px solid #5a4a35; margin: 5px 0;">
+                        <p>Výdrž: <span id="m-stamina">-</span></p>
+                        <p>Zdraví: <span id="m-health">-</span></p>
+                    </div>
+                </div>
+
+                <!-- Otec -->
+                <div class="horse-box">
+                    <h2>Otec (Hřebec)</h2>
+                    <select id="father-select">
+                        <option value="" disabled selected>Vyber hřebce...</option>
+                    </select>
+                    <div id="father-stats" class="stats-box">
+                        <p>Rychlost: <span id="f-speed">-</span></p>
+                        <p>Akcelerace: <span id="f-accel">-</span></p>
+                        <p>Ovladatelnost: <span id="f-handling">-</span></p>
+                        <hr style="border: 0; border-top: 1px solid #5a4a35; margin: 5px 0;">
+                        <p>Výdrž: <span id="f-stamina">-</span></p>
+                        <p>Zdraví: <span id="f-health">-</span></p>
+                    </div>
+                </div>
+            </div>
+
+            <button id="breed-btn" disabled>Zahájit Množení</button>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
